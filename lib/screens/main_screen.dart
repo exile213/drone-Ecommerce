@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../utils/constants.dart' as constants;
@@ -92,7 +93,10 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Drone E-Commerce'),
+        title: Text(
+          'ShopMobile',
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        ),
         actions: [
           // Seller menu items
           if (widget.user.role == constants.AppConstants.roleUser ||
@@ -168,8 +172,12 @@ class _MainScreenState extends State<MainScreen> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0ea5e9), Color(0xFF6366f1)],
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,8 +189,8 @@ class _MainScreenState extends State<MainScreen> {
                     backgroundColor: Colors.white,
                     child: Text(
                       widget.user.fullName[0].toUpperCase(),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF0ea5e9),
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -192,7 +200,7 @@ class _MainScreenState extends State<MainScreen> {
                   Flexible(
                     child: Text(
                       widget.user.fullName,
-                      style: const TextStyle(
+                      style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -205,7 +213,7 @@ class _MainScreenState extends State<MainScreen> {
                   Flexible(
                     child: Text(
                       widget.user.email,
-                      style: const TextStyle(
+                      style: GoogleFonts.inter(
                         color: Colors.white70,
                         fontSize: 14,
                       ),
@@ -215,46 +223,72 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                   const SizedBox(height: 4),
                   Flexible(
-                    child: Chip(
-                      label: Text(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFe0f2fe),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
                         widget.user.role.toUpperCase(),
-                        style: const TextStyle(fontSize: 10),
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF0ea5e9),
+                        ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
-                      backgroundColor: Colors.white,
                     ),
                   ),
                 ],
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
+              leading: const Icon(Icons.home, color: Color(0xFF0f172a)),
+              title: Text(
+                'Home',
+                style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 setState(() => _currentIndex = 0);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.shopping_bag),
-              title: const Text('Browse Products'),
+              leading: const Icon(Icons.shopping_bag, color: Color(0xFF0f172a)),
+              title: Text(
+                'Browse Products',
+                style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 setState(() => _currentIndex = 1);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.shopping_cart),
-              title: const Text('Shopping Cart'),
+              leading: const Icon(
+                Icons.shopping_cart,
+                color: Color(0xFF0f172a),
+              ),
+              title: Text(
+                'Shopping Cart',
+                style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 setState(() => _currentIndex = 2);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.receipt_long),
-              title: const Text('My Orders'),
+              leading: const Icon(Icons.receipt_long, color: Color(0xFF0f172a)),
+              title: Text(
+                'My Orders',
+                style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 setState(() => _currentIndex = 3);
@@ -262,10 +296,16 @@ class _MainScreenState extends State<MainScreen> {
             ),
             if (widget.user.role == constants.AppConstants.roleUser ||
                 widget.user.isAdmin) ...[
-              const Divider(),
+              const Divider(color: Color(0xFFe2e8f0)),
               ListTile(
-                leading: const Icon(Icons.inventory_2),
-                title: const Text('My Products'),
+                leading: const Icon(
+                  Icons.inventory_2,
+                  color: Color(0xFF0f172a),
+                ),
+                title: Text(
+                  'My Products',
+                  style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -278,8 +318,14 @@ class _MainScreenState extends State<MainScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.shopping_bag),
-                title: const Text('Incoming Orders'),
+                leading: const Icon(
+                  Icons.shopping_bag,
+                  color: Color(0xFF0f172a),
+                ),
+                title: Text(
+                  'Incoming Orders',
+                  style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
@@ -292,10 +338,13 @@ class _MainScreenState extends State<MainScreen> {
                 },
               ),
             ],
-            const Divider(),
+            const Divider(color: Color(0xFFe2e8f0)),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              title: Text(
+                'Logout',
+                style: GoogleFonts.inter(color: Colors.red),
+              ),
               onTap: _handleLogout,
             ),
           ],
@@ -308,6 +357,14 @@ class _MainScreenState extends State<MainScreen> {
           setState(() => _currentIndex = index);
         },
         type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF0ea5e9),
+        unselectedItemColor: const Color(0xFF64748b),
+        selectedLabelStyle: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+        unselectedLabelStyle: GoogleFonts.inter(fontSize: 12),
         items: _bottomNavItems,
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/user_model.dart';
 import '../services/product_service.dart';
 import '../models/product_model.dart';
@@ -55,14 +56,11 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24.0),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.primary.withOpacity(0.7),
-                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
+                  colors: [Color(0xFF0ea5e9), Color(0xFF6366f1)],
                 ),
               ),
               child: Column(
@@ -72,20 +70,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const Icon(Icons.flight, color: Colors.white, size: 32),
                       const SizedBox(width: 12),
-                      Text(
-                        'Welcome, ${widget.user.fullName}!',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          'Welcome, ${widget.user.fullName}!',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Explore our drone marketplace',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                    style: GoogleFonts.inter(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
@@ -151,11 +154,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     'Featured Products',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style: GoogleFonts.inter(
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0f172a),
                     ),
                   ),
-                  TextButton(onPressed: () {}, child: const Text('See All')),
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      'See All',
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF0ea5e9),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -181,7 +195,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 16),
                           Text(
                             'No products available',
-                            style: TextStyle(color: Colors.grey[600]),
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF64748b),
+                            ),
                           ),
                         ],
                       ),
@@ -197,72 +213,90 @@ class _HomeScreenState extends State<HomeScreen> {
                         final product = _featuredProducts[index];
                         return SizedBox(
                           width: 180,
-                          child: Card(
-                            clipBehavior: Clip.antiAlias,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProductDetailScreen(
-                                      product: product,
-                                      user: widget.user,
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF0ea5e9,
+                                  ).withOpacity(0.1),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ProductDetailScreen(
+                                        product: product,
+                                        user: widget.user,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(
-                                    child: product.imageUrl != null
-                                        ? Image.network(
-                                            product.imageUrl!,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                                  return Container(
-                                                    color: Colors.grey[200],
-                                                    child: const Icon(
-                                                      Icons.image_not_supported,
-                                                    ),
-                                                  );
-                                                },
-                                          )
-                                        : Container(
-                                            color: Colors.grey[200],
-                                            child: const Icon(Icons.image),
-                                          ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          product.name,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          product.formattedPrice,
-                                          style: TextStyle(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
+                                  );
+                                },
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Expanded(
+                                      child: product.imageUrl != null
+                                          ? Image.network(
+                                              product.imageUrl!,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
+                                                    return Container(
+                                                      color: Colors.grey[200],
+                                                      child: const Icon(
+                                                        Icons
+                                                            .image_not_supported,
+                                                      ),
+                                                    );
+                                                  },
+                                            )
+                                          : Container(
+                                              color: Colors.grey[200],
+                                              child: const Icon(Icons.image),
+                                            ),
                                     ),
-                                  ),
-                                ],
+                                    Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            product.name,
+                                            style: GoogleFonts.inter(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: const Color(0xFF0f172a),
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            product.formattedPrice,
+                                            style: GoogleFonts.inter(
+                                              color: const Color(0xFF0ea5e9),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -284,23 +318,39 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Icon(icon, color: color, size: 32),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0ea5e9).withOpacity(0.1),
+            blurRadius: 6,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Icon(icon, color: color, size: 32),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: const Color(0xFF0f172a),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

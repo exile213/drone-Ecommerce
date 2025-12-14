@@ -91,6 +91,5 @@ class ProductModel {
   }
 
   bool get isInStock => stockQuantity > 0;
-  String get formattedPrice => '\$${price.toStringAsFixed(2)}';
+  String get formattedPrice => '₱${price.toStringAsFixed(2)}';
 }
-

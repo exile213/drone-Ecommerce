@@ -42,7 +42,9 @@ class OrderModel {
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
       items: json['items'] != null
-          ? (json['items'] as List).map((item) => OrderItemModel.fromJson(item)).toList()
+          ? (json['items'] as List)
+                .map((item) => OrderItemModel.fromJson(item))
+                .toList()
           : null,
     );
   }
@@ -90,11 +92,11 @@ class OrderModel {
     );
   }
 
-  String get formattedTotal => '\$${totalAmount.toStringAsFixed(2)}';
+  String get formattedTotal => '₱${totalAmount.toStringAsFixed(2)}';
   bool get isPending => status == 'pending';
   bool get isShipped => status == 'shipped';
   bool get isCompleted => status == 'completed';
-  
+
   String get statusDisplay {
     switch (status) {
       case 'pending':
@@ -154,8 +156,7 @@ class OrderItemModel {
     };
   }
 
-  String get formattedPrice => '\$${price.toStringAsFixed(2)}';
+  String get formattedPrice => '₱${price.toStringAsFixed(2)}';
   double get itemTotal => price * quantity;
-  String get formattedTotal => '\$${itemTotal.toStringAsFixed(2)}';
+  String get formattedTotal => '₱${itemTotal.toStringAsFixed(2)}';
 }
-

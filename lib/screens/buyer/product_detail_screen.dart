@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../models/product_model.dart';
 import '../../models/user_model.dart';
 import '../../services/cart_service.dart';
@@ -118,19 +119,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     // Product name
                     Text(
                       widget.product.name,
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: GoogleFonts.inter(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF0f172a),
+                      ),
                     ),
                     const SizedBox(height: 8),
 
                     // Price
                     Text(
                       widget.product.formattedPrice,
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: GoogleFonts.inter(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF0ea5e9),
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -162,9 +166,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     const SizedBox(height: 8),
 
                     // Category
-                    Chip(
-                      label: Text(widget.product.category),
-                      avatar: const Icon(Icons.category, size: 18),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFe0f2fe),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.category,
+                            size: 18,
+                            color: Color(0xFF0ea5e9),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            widget.product.category,
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF0ea5e9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -173,13 +201,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         widget.product.description!.isNotEmpty) ...[
                       Text(
                         'Description',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0f172a),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         widget.product.description!,
-                        style: Theme.of(context).textTheme.bodyLarge,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: const Color(0xFF64748b),
+                          height: 1.5,
+                        ),
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -188,14 +223,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     if (widget.product.isInStock) ...[
                       Text(
                         'Quantity',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0f172a),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.remove_circle_outline),
+                            icon: const Icon(
+                              Icons.remove_circle_outline,
+                              color: Color(0xFF0ea5e9),
+                            ),
                             onPressed: _quantity > 1
                                 ? () => setState(() => _quantity--)
                                 : null,
@@ -204,14 +245,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
                               '$_quantity',
-                              style: const TextStyle(
+                              style: GoogleFonts.inter(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: const Color(0xFF0f172a),
                               ),
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.add_circle_outline),
+                            icon: Icon(
+                              Icons.add_circle_outline,
+                              color: _quantity < widget.product.stockQuantity
+                                  ? const Color(0xFF0ea5e9)
+                                  : Colors.grey,
+                            ),
                             onPressed: _quantity < widget.product.stockQuantity
                                 ? () => setState(() => _quantity++)
                                 : null,
@@ -219,7 +266,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           const Spacer(),
                           Text(
                             'Max: ${widget.product.stockQuantity}',
-                            style: TextStyle(color: Colors.grey[600]),
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF64748b),
+                            ),
                           ),
                         ],
                       ),
@@ -235,18 +284,55 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ? SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton.icon(
-                    onPressed: _isAddingToCart ? null : _addToCart,
-                    icon: _isAddingToCart
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.shopping_cart),
-                    label: Text(_isAddingToCart ? 'Adding...' : 'Add to Cart'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF0ea5e9), Color(0xFF6366f1)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0ea5e9).withOpacity(0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: _isAddingToCart ? null : _addToCart,
+                      icon: _isAddingToCart
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : const Icon(
+                              Icons.shopping_cart,
+                              color: Colors.white,
+                            ),
+                      label: Text(
+                        _isAddingToCart ? 'Adding...' : 'Add to Cart',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
                     ),
                   ),
                 ),

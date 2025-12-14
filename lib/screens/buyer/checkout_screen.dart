@@ -111,7 +111,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     try {
       // Format date and time for API
       final deliveryDate = DateFormat('yyyy-MM-dd').format(_selectedDate!);
-      final deliveryTime = '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}:00';
+      final deliveryTime =
+          '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}:00';
 
       final result = await OrderService.createOrder(
         userId: widget.user.id!,
@@ -156,9 +157,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Checkout'),
-      ),
+      appBar: AppBar(title: const Text('Checkout')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -176,40 +175,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Text(
                         'Order Summary',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      ...widget.cartItems.map((item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '${item.productName} x ${item.quantity}',
-                                  ),
+                      ...widget.cartItems.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '${item.productName} x ${item.quantity}',
                                 ),
-                                Text(
-                                  item.formattedTotal,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                item.formattedTotal,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ],
-                            ),
-                          )),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                       const Divider(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'Total:',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            '\$${widget.total.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            '₱${widget.total.toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
@@ -221,7 +224,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Delivery address
               TextFormField(
                 controller: _addressController,
@@ -239,13 +242,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 },
               ),
               const SizedBox(height: 24),
-              
+
               // Delivery date picker
               Text(
                 'Delivery Date *',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               InkWell(
@@ -263,10 +266,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(width: 16),
                       Text(
                         _selectedDate != null
-                            ? DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate!)
+                            ? DateFormat(
+                                'EEEE, MMMM d, yyyy',
+                              ).format(_selectedDate!)
                             : 'Select delivery date',
                         style: TextStyle(
-                          color: _selectedDate != null ? Colors.black : Colors.grey[600],
+                          color: _selectedDate != null
+                              ? Colors.black
+                              : Colors.grey[600],
                         ),
                       ),
                       const Spacer(),
@@ -276,13 +283,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Delivery time picker
               Text(
                 'Delivery Time *',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               InkWell(
@@ -303,7 +310,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ? _selectedTime!.format(context)
                             : 'Select delivery time',
                         style: TextStyle(
-                          color: _selectedTime != null ? Colors.black : Colors.grey[600],
+                          color: _selectedTime != null
+                              ? Colors.black
+                              : Colors.grey[600],
                         ),
                       ),
                       const Spacer(),
@@ -313,7 +322,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // Place order button
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : _placeOrder,
@@ -336,4 +345,3 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 }
-

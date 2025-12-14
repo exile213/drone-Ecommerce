@@ -31,21 +31,23 @@ class CartItemModel {
       productId: int.parse(json['product_id'].toString()),
       quantity: int.parse(json['quantity'].toString()),
       productName: json['name'] as String?,
-      price: json['price'] != null ? double.parse(json['price'].toString()) : null,
+      price: json['price'] != null
+          ? double.parse(json['price'].toString())
+          : null,
       imageUrl: json['image_url'] as String?,
-      stockQuantity: json['stock_quantity'] != null ? int.parse(json['stock_quantity'].toString()) : null,
-      itemTotal: json['item_total'] != null ? double.parse(json['item_total'].toString()) : null,
+      stockQuantity: json['stock_quantity'] != null
+          ? int.parse(json['stock_quantity'].toString())
+          : null,
+      itemTotal: json['item_total'] != null
+          ? double.parse(json['item_total'].toString())
+          : null,
       createdAt: json['created_at'] as String?,
     );
   }
 
   // Convert to JSON
   Map<String, dynamic> toJson() {
-    return {
-      'user_id': userId,
-      'product_id': productId,
-      'quantity': quantity,
-    };
+    return {'user_id': userId, 'product_id': productId, 'quantity': quantity};
   }
 
   // Copy with method for updates
@@ -75,8 +77,9 @@ class CartItemModel {
     );
   }
 
-  String get formattedPrice => price != null ? '\$${price!.toStringAsFixed(2)}' : '';
-  String get formattedTotal => itemTotal != null ? '\$${itemTotal!.toStringAsFixed(2)}' : '';
+  String get formattedPrice =>
+      price != null ? '₱${price!.toStringAsFixed(2)}' : '';
+  String get formattedTotal =>
+      itemTotal != null ? '₱${itemTotal!.toStringAsFixed(2)}' : '';
   bool get isAvailable => stockQuantity != null && stockQuantity! >= quantity;
 }
-
