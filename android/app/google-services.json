@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "685308416724",
+    "project_id": "drone-ecommerce-3a480",
+    "storage_bucket": "drone-ecommerce-3a480.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:685308416724:android:0fe86adfc8cbee325b2141",
+        "android_client_info": {
+          "package_name": "com.example.ecommercephp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoROkijibknQ89pehLrk9WN-umOPaRkT0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
