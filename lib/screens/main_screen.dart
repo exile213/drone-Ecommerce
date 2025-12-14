@@ -10,6 +10,9 @@ import 'buyer/cart_screen.dart';
 import 'buyer/my_orders_screen.dart';
 import 'seller/products_list_screen.dart';
 import 'seller/seller_orders_screen.dart';
+import 'admin/admin_all_products_screen.dart';
+import 'admin/admin_all_orders_screen.dart';
+import 'admin/admin_all_users_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final UserModel user;
@@ -91,6 +94,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = widget.user.isAdmin;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -98,9 +103,27 @@ class _MainScreenState extends State<MainScreen> {
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         actions: [
-          // Seller menu items
-          if (widget.user.role == constants.AppConstants.roleUser ||
-              widget.user.isAdmin) ...[
+          // Admin badge
+          if (isAdmin)
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: constants.AppConstants.adminPrimary,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'ADMIN',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          // Seller menu items (only for regular users, not admins)
+          if (widget.user.role == constants.AppConstants.roleUser &&
+              !widget.user.isAdmin) ...[
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
               itemBuilder: (context) => [
@@ -172,11 +195,16 @@ class _MainScreenState extends State<MainScreen> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF0ea5e9), Color(0xFF6366f1)],
+                  colors: widget.user.isAdmin
+                      ? [
+                          constants.AppConstants.adminPrimary,
+                          constants.AppConstants.adminSecondary,
+                        ]
+                      : [const Color(0xFF0ea5e9), const Color(0xFF6366f1)],
                 ),
               ),
               child: Column(
@@ -190,7 +218,9 @@ class _MainScreenState extends State<MainScreen> {
                     child: Text(
                       widget.user.fullName[0].toUpperCase(),
                       style: GoogleFonts.inter(
-                        color: const Color(0xFF0ea5e9),
+                        color: widget.user.isAdmin
+                            ? constants.AppConstants.adminPrimary
+                            : const Color(0xFF0ea5e9),
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -229,7 +259,9 @@ class _MainScreenState extends State<MainScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFe0f2fe),
+                        color: widget.user.isAdmin
+                            ? constants.AppConstants.adminLight
+                            : const Color(0xFFe0f2fe),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
@@ -237,7 +269,9 @@ class _MainScreenState extends State<MainScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF0ea5e9),
+                          color: widget.user.isAdmin
+                              ? constants.AppConstants.adminPrimary
+                              : const Color(0xFF0ea5e9),
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -294,8 +328,9 @@ class _MainScreenState extends State<MainScreen> {
                 setState(() => _currentIndex = 3);
               },
             ),
-            if (widget.user.role == constants.AppConstants.roleUser ||
-                widget.user.isAdmin) ...[
+            // Seller menu section (only for regular users, not admins)
+            if (widget.user.role == constants.AppConstants.roleUser &&
+                !widget.user.isAdmin) ...[
               const Divider(color: Color(0xFFe2e8f0)),
               ListTile(
                 leading: const Icon(
@@ -333,6 +368,94 @@ class _MainScreenState extends State<MainScreen> {
                     MaterialPageRoute(
                       builder: (context) =>
                           SellerOrdersScreen(user: widget.user),
+                    ),
+                  );
+                },
+              ),
+            ],
+            // Admin menu section (only for admins)
+            if (widget.user.isAdmin) ...[
+              const Divider(color: Color(0xFFe2e8f0)),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  'ADMIN DASHBOARD',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: constants.AppConstants.adminPrimary,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.inventory_2,
+                  color: constants.AppConstants.adminPrimary,
+                ),
+                title: Text(
+                  'All Products',
+                  style: GoogleFonts.inter(
+                    color: constants.AppConstants.adminPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AdminAllProductsScreen(user: widget.user),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.receipt_long,
+                  color: constants.AppConstants.adminPrimary,
+                ),
+                title: Text(
+                  'All Orders',
+                  style: GoogleFonts.inter(
+                    color: constants.AppConstants.adminPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AdminAllOrdersScreen(user: widget.user),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.people,
+                  color: constants.AppConstants.adminPrimary,
+                ),
+                title: Text(
+                  'All Users',
+                  style: GoogleFonts.inter(
+                    color: constants.AppConstants.adminPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AdminAllUsersScreen(user: widget.user),
                     ),
                   );
                 },

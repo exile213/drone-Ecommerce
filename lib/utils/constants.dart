@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class ApiConstants {
   // Laragon API Base URL
   // Note: ApiService.getBaseUrl() handles platform-specific URLs automatically
@@ -54,4 +56,10 @@ class AppConstants {
     'Propellers',
     'Camera Equipment',
   ];
+
+  // Admin Color Scheme
+  static const Color adminPrimary = Color(0xFF7c3aed); // violet-600
+  static const Color adminSecondary = Color(0xFFa855f7); // violet-500
+  static const Color adminLight = Color(0xFFede9fe); // violet-50
+  static const Color adminDark = Color(0xFF6d28d9); // violet-700
 }

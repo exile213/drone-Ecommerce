@@ -123,8 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  if (widget.user.role == constants.AppConstants.roleUser ||
-                      widget.user.isAdmin)
+                  // Only show "My Products" for regular users, not admins
+                  if (widget.user.role == constants.AppConstants.roleUser &&
+                      !widget.user.isAdmin)
                     Expanded(
                       child: _buildQuickActionCard(
                         context,
