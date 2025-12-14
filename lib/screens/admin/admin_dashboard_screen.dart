@@ -243,24 +243,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildQuickActionCard(
-                      context,
-                      icon: Icons.analytics,
-                      title: 'Analytics',
-                      subtitle: 'View reports',
-                      color: Colors.purple,
-                      onTap: () {
-                        // TODO: Navigate to analytics screen when created
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Analytics coming soon!'),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
                 ],
               ),
             ),

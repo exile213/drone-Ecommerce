@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
-import '../services/order_service.dart';
 import '../providers/cart_provider.dart';
 import '../utils/constants.dart' as constants;
 import 'auth/login_screen.dart';
@@ -16,7 +15,6 @@ import 'seller/seller_orders_screen.dart';
 import 'admin/admin_all_products_screen.dart';
 import 'admin/admin_all_orders_screen.dart';
 import 'admin/admin_all_users_screen.dart';
-import 'admin/admin_dashboard_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final UserModel user;
@@ -31,28 +29,28 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final AuthService _authService = AuthService();
   int _ordersRefreshKey = 0;
+  int _adminUsersRefreshKey = 0;
+  int _adminProductsRefreshKey = 0;
+  int _adminOrdersRefreshKey = 0;
 
   List<Widget> get _screens {
     // Role-based screen navigation:
-    // - Admin: Admin dashboard + buyer features (browse, cart, orders)
+    // - Admin: Users, Products, Orders (admin management screens)
     // - User: Buyer + Seller features (home, browse, cart, orders)
     //   Note: "user" role can act as both buyer and seller
     if (widget.user.isAdmin) {
       return [
-        AdminDashboardScreen(
+        AdminAllUsersScreen(
+          key: ValueKey(_adminUsersRefreshKey),
           user: widget.user,
-          onNavigateToTab: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
         ),
-        ProductsBrowseScreen(user: widget.user),
-        CartScreen(user: widget.user),
-        MyOrdersScreen(
-          key: ValueKey(_ordersRefreshKey),
+        AdminAllProductsScreen(
+          key: ValueKey(_adminProductsRefreshKey),
           user: widget.user,
-          refreshKey: ValueKey(_ordersRefreshKey),
+        ),
+        AdminAllOrdersScreen(
+          key: ValueKey(_adminOrdersRefreshKey),
+          user: widget.user,
         ),
       ];
     }
@@ -128,12 +126,10 @@ class _MainScreenState extends State<MainScreen> {
     if (widget.user.isAdmin) {
       switch (_currentIndex) {
         case 0:
-          return 'Admin Dashboard';
+          return 'Users';
         case 1:
-          return 'Browse';
+          return 'Products';
         case 2:
-          return 'Cart';
-        case 3:
           return 'Orders';
         default:
           return 'ShopMobile';
@@ -160,34 +156,73 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: widget.user.isAdmin
+            ? constants.AppConstants.adminPrimary
+            : null,
+        foregroundColor: widget.user.isAdmin ? Colors.white : null,
         title: Text(
           _appBarTitle,
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         actions: [
-          // Refresh button for Cart and Orders tabs
-          if (_currentIndex == 2) // Cart tab
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                final cartProvider = Provider.of<CartProvider>(
-                  context,
-                  listen: false,
-                );
-                cartProvider.loadCart(widget.user.id!);
-              },
-              tooltip: 'Refresh Cart',
-            ),
-          if (_currentIndex == 3) // Orders tab
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                setState(() {
-                  _ordersRefreshKey++; // Change key to trigger refresh
-                });
-              },
-              tooltip: 'Refresh Orders',
-            ),
+          // Refresh buttons for admin users
+          if (widget.user.isAdmin) ...[
+            if (_currentIndex == 0) // Users tab
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  setState(() {
+                    _adminUsersRefreshKey++; // Change key to trigger refresh
+                  });
+                },
+                tooltip: 'Refresh Users',
+              ),
+            if (_currentIndex == 1) // Products tab
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  setState(() {
+                    _adminProductsRefreshKey++; // Change key to trigger refresh
+                  });
+                },
+                tooltip: 'Refresh Products',
+              ),
+            if (_currentIndex == 2) // Orders tab
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  setState(() {
+                    _adminOrdersRefreshKey++; // Change key to trigger refresh
+                  });
+                },
+                tooltip: 'Refresh Orders',
+              ),
+          ],
+          // Refresh button for Cart and Orders tabs (only for non-admin users)
+          if (!widget.user.isAdmin) ...[
+            if (_currentIndex == 2) // Cart tab
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  final cartProvider = Provider.of<CartProvider>(
+                    context,
+                    listen: false,
+                  );
+                  cartProvider.loadCart(widget.user.id!);
+                },
+                tooltip: 'Refresh Cart',
+              ),
+            if (_currentIndex == 3) // Orders tab
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () {
+                  setState(() {
+                    _ordersRefreshKey++; // Change key to trigger refresh
+                  });
+                },
+                tooltip: 'Refresh Orders',
+              ),
+          ],
           // Admin badge
           if (isAdmin)
             Container(
@@ -375,53 +410,62 @@ class _MainScreenState extends State<MainScreen> {
                 ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.home, color: Color(0xFF0f172a)),
-              title: Text(
-                'Home',
-                style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+            if (!widget.user.isAdmin) ...[
+              // Regular user navigation items
+              ListTile(
+                leading: const Icon(Icons.home, color: Color(0xFF0f172a)),
+                title: Text(
+                  'Home',
+                  style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 0);
+                },
               ),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() => _currentIndex = 0);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.shopping_bag, color: Color(0xFF0f172a)),
-              title: Text(
-                'Browse Products',
-                style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+              ListTile(
+                leading: const Icon(
+                  Icons.shopping_bag,
+                  color: Color(0xFF0f172a),
+                ),
+                title: Text(
+                  'Browse Products',
+                  style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 1);
+                },
               ),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() => _currentIndex = 1);
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.shopping_cart,
-                color: Color(0xFF0f172a),
+              ListTile(
+                leading: const Icon(
+                  Icons.shopping_cart,
+                  color: Color(0xFF0f172a),
+                ),
+                title: Text(
+                  'Shopping Cart',
+                  style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 2);
+                },
               ),
-              title: Text(
-                'Shopping Cart',
-                style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+              ListTile(
+                leading: const Icon(
+                  Icons.receipt_long,
+                  color: Color(0xFF0f172a),
+                ),
+                title: Text(
+                  'My Orders',
+                  style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 3);
+                },
               ),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() => _currentIndex = 2);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.receipt_long, color: Color(0xFF0f172a)),
-              title: Text(
-                'My Orders',
-                style: GoogleFonts.inter(color: const Color(0xFF0f172a)),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() => _currentIndex = 3);
-              },
-            ),
+            ],
             // Seller menu section: User role can manage products and view orders
             // (User role = buyer + seller capabilities)
             if (widget.user.role == constants.AppConstants.roleUser &&
@@ -488,6 +532,23 @@ class _MainScreenState extends State<MainScreen> {
               ),
               ListTile(
                 leading: Icon(
+                  Icons.people,
+                  color: constants.AppConstants.adminPrimary,
+                ),
+                title: Text(
+                  'All Users',
+                  style: GoogleFonts.inter(
+                    color: constants.AppConstants.adminPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 0);
+                },
+              ),
+              ListTile(
+                leading: Icon(
                   Icons.inventory_2,
                   color: constants.AppConstants.adminPrimary,
                 ),
@@ -500,13 +561,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AdminAllProductsScreen(user: widget.user),
-                    ),
-                  );
+                  setState(() => _currentIndex = 1);
                 },
               ),
               ListTile(
@@ -523,36 +578,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AdminAllOrdersScreen(user: widget.user),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.people,
-                  color: constants.AppConstants.adminPrimary,
-                ),
-                title: Text(
-                  'All Users',
-                  style: GoogleFonts.inter(
-                    color: constants.AppConstants.adminPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AdminAllUsersScreen(user: widget.user),
-                    ),
-                  );
+                  setState(() => _currentIndex = 2);
                 },
               ),
             ],
@@ -576,7 +602,9 @@ class _MainScreenState extends State<MainScreen> {
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF0ea5e9),
+        selectedItemColor: widget.user.isAdmin
+            ? constants.AppConstants.adminPrimary
+            : const Color(0xFF0ea5e9),
         unselectedItemColor: const Color(0xFF64748b),
         selectedLabelStyle: GoogleFonts.inter(
           fontWeight: FontWeight.w600,
@@ -586,16 +614,12 @@ class _MainScreenState extends State<MainScreen> {
         items: widget.user.isAdmin
             ? [
                 const BottomNavigationBarItem(
-                  icon: Icon(Icons.dashboard),
-                  label: 'Dashboard',
+                  icon: Icon(Icons.people),
+                  label: 'Users',
                 ),
                 const BottomNavigationBarItem(
-                  icon: Icon(Icons.shopping_bag),
-                  label: 'Browse',
-                ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.shopping_cart),
-                  label: 'Cart',
+                  icon: Icon(Icons.inventory_2),
+                  label: 'Products',
                 ),
                 const BottomNavigationBarItem(
                   icon: Icon(Icons.receipt_long),

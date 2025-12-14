@@ -129,303 +129,255 @@ class _AdminAllProductsScreenState extends State<AdminAllProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('All Products'),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                constants.AppConstants.adminPrimary,
-                constants.AppConstants.adminSecondary,
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              'ADMIN',
-              style: GoogleFonts.inter(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        // Search bar
+        Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: constants.AppConstants.adminLight,
+            boxShadow: [
+              BoxShadow(
+                color: constants.AppConstants.adminPrimary.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
-            ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadProducts,
-            tooltip: 'Refresh',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Search bar
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: constants.AppConstants.adminLight,
-              boxShadow: [
-                BoxShadow(
-                  color: constants.AppConstants.adminPrimary.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search products or sellers...',
-                prefixIcon: const Icon(
-                  Icons.search,
+          child: TextField(
+            decoration: InputDecoration(
+              hintText: 'Search products or sellers...',
+              prefixIcon: const Icon(
+                Icons.search,
+                color: constants.AppConstants.adminPrimary,
+              ),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.clear,
+                        color: constants.AppConstants.adminPrimary,
+                      ),
+                      onPressed: () {
+                        setState(() => _searchQuery = '');
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
                   color: constants.AppConstants.adminPrimary,
                 ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.clear,
-                          color: constants.AppConstants.adminPrimary,
-                        ),
-                        onPressed: () {
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: constants.AppConstants.adminPrimary,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: constants.AppConstants.adminPrimary.withOpacity(0.3),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: constants.AppConstants.adminPrimary,
-                    width: 2,
-                  ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: constants.AppConstants.adminPrimary.withOpacity(0.3),
                 ),
               ),
-              onChanged: (value) {
-                setState(() => _searchQuery = value);
-              },
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: constants.AppConstants.adminPrimary,
+                  width: 2,
+                ),
+              ),
             ),
+            onChanged: (value) {
+              setState(() => _searchQuery = value);
+            },
           ),
+        ),
 
-          // Products list
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredProducts.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isEmpty
-                              ? 'No products found'
-                              : 'No products match your search',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey[600],
+        // Products list
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _filteredProducts.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _searchQuery.isEmpty
+                            ? 'No products found'
+                            : 'No products match your search',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadProducts,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _filteredProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = _filteredProducts[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: constants.AppConstants.adminPrimary
+                                .withOpacity(0.2),
+                            width: 1,
                           ),
                         ),
-                      ],
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _loadProducts,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _filteredProducts.length,
-                      itemBuilder: (context, index) {
-                        final product = _filteredProducts[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(
-                              color: constants.AppConstants.adminPrimary
-                                  .withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: ListTile(
-                            leading: product.imageUrl != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(
-                                      product.imageUrl!,
-                                      width: 60,
-                                      height: 60,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return Container(
-                                              width: 60,
-                                              height: 60,
-                                              color: constants
-                                                  .AppConstants
-                                                  .adminLight,
-                                              child: const Icon(
-                                                Icons.image_not_supported,
-                                              ),
-                                            );
-                                          },
-                                    ),
-                                  )
-                                : Container(
+                        child: ListTile(
+                          leading: product.imageUrl != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    product.imageUrl!,
                                     width: 60,
                                     height: 60,
-                                    decoration: BoxDecoration(
-                                      color: constants.AppConstants.adminLight,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(Icons.image, size: 30),
-                                  ),
-                            title: Text(
-                              product.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${product.formattedPrice} • Stock: ${product.stockQuantity}',
-                                ),
-                                if (product.sellerName != null) ...[
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.person_outline,
-                                        size: 14,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: 60,
+                                        height: 60,
                                         color:
-                                            constants.AppConstants.adminPrimary,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Seller: ${product.sellerName}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: constants
-                                              .AppConstants
-                                              .adminPrimary,
-                                          fontWeight: FontWeight.w500,
+                                            constants.AppConstants.adminLight,
+                                        child: const Icon(
+                                          Icons.image_not_supported,
                                         ),
-                                      ),
-                                    ],
+                                      );
+                                    },
                                   ),
-                                ],
-                                if (product.description != null &&
-                                    product.description!.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 4),
-                                    child: Text(
-                                      product.description!,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                )
+                              : Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: constants.AppConstants.adminLight,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Icons.image, size: 30),
+                                ),
+                          title: Text(
+                            product.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(
+                                '${product.formattedPrice} • Stock: ${product.stockQuantity}',
+                              ),
+                              if (product.sellerName != null) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.person_outline,
+                                      size: 14,
+                                      color:
+                                          constants.AppConstants.adminPrimary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Seller: ${product.sellerName}',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.grey[600],
+                                        color:
+                                            constants.AppConstants.adminPrimary,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                  ),
-                              ],
-                            ),
-                            trailing: PopupMenuButton(
-                              icon: const Icon(Icons.more_vert),
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                  value: 'edit',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.edit, size: 20),
-                                      SizedBox(width: 8),
-                                      Text('Edit'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'delete',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.delete,
-                                        size: 20,
-                                        color: Colors.red,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Delete',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ],
-                                  ),
+                                  ],
                                 ),
                               ],
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ProductFormScreen(
-                                        user: widget.user,
-                                        product: product,
-                                      ),
+                              if (product.description != null &&
+                                  product.description!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    product.description!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
                                     ),
-                                  ).then((_) => _loadProducts());
-                                } else if (value == 'delete') {
-                                  _deleteProduct(product);
-                                }
-                              },
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ProductFormScreen(
-                                    user: widget.user,
-                                    product: product,
                                   ),
                                 ),
-                              ).then((_) => _loadProducts());
+                            ],
+                          ),
+                          trailing: PopupMenuButton(
+                            icon: const Icon(Icons.more_vert),
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Edit'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.delete,
+                                      size: 20,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductFormScreen(
+                                      user: widget.user,
+                                      product: product,
+                                    ),
+                                  ),
+                                ).then((_) => _loadProducts());
+                              } else if (value == 'delete') {
+                                _deleteProduct(product);
+                              }
                             },
                           ),
-                        );
-                      },
-                    ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProductFormScreen(
+                                  user: widget.user,
+                                  product: product,
+                                ),
+                              ),
+                            ).then((_) => _loadProducts());
+                          },
+                        ),
+                      );
+                    },
                   ),
-          ),
-        ],
-      ),
+                ),
+        ),
+      ],
     );
   }
 }
