@@ -21,6 +21,17 @@ A Flutter mobile e-commerce application for buying and selling drone products, f
 ✅ Order Status Updates
 ✅ Image Upload
 
+## User Roles
+
+The app uses a hybrid role system:
+
+- **Admin**: Full admin dashboard access with ability to manage all products, orders, and users. Can also browse and purchase products.
+- **User (Buyer & Seller)**: Hybrid role that allows users to:
+  - **Act as Buyer**: Browse products, add to cart, checkout, view their orders
+  - **Act as Seller**: Add/edit/delete products, view incoming orders, update order status
+
+This design is more realistic for a marketplace where users can both buy and sell products with a single account.
+
 ## Quick Start
 
 ### Prerequisites

@@ -6,6 +6,7 @@ class CartProvider with ChangeNotifier {
   List<CartItemModel> _cartItems = [];
   double _total = 0.0;
   bool _isLoading = false;
+  int? _currentUserId;
 
   List<CartItemModel> get cartItems => _cartItems;
   double get total => _total;
@@ -14,6 +15,7 @@ class CartProvider with ChangeNotifier {
 
   // Load cart
   Future<void> loadCart(int userId) async {
+    _currentUserId = userId;
     _isLoading = true;
     notifyListeners();
 
@@ -47,13 +49,17 @@ class CartProvider with ChangeNotifier {
   Future<bool> updateCartItem(int id, int quantity) async {
     final result = await CartService.updateCartItem(id: id, quantity: quantity);
     if (result['success']) {
-      // Reload cart to get updated data
-      // Note: We'd need userId here, but for simplicity, just update locally
-      final item = _cartItems.firstWhere((item) => item.id == id);
-      final index = _cartItems.indexOf(item);
-      _cartItems[index] = item.copyWith(quantity: quantity);
-      _calculateTotal();
-      notifyListeners();
+      // Reload cart to get updated data from server
+      if (_currentUserId != null) {
+        await loadCart(_currentUserId!);
+      } else {
+        // Fallback: update locally if userId not available
+        final item = _cartItems.firstWhere((item) => item.id == id);
+        final index = _cartItems.indexOf(item);
+        _cartItems[index] = item.copyWith(quantity: quantity);
+        _calculateTotal();
+        notifyListeners();
+      }
       return true;
     }
     return false;
@@ -63,9 +69,15 @@ class CartProvider with ChangeNotifier {
   Future<bool> removeFromCart(int id) async {
     final result = await CartService.removeFromCart(id);
     if (result['success']) {
-      _cartItems.removeWhere((item) => item.id == id);
-      _calculateTotal();
-      notifyListeners();
+      // Reload cart to get updated data from server
+      if (_currentUserId != null) {
+        await loadCart(_currentUserId!);
+      } else {
+        // Fallback: update locally if userId not available
+        _cartItems.removeWhere((item) => item.id == id);
+        _calculateTotal();
+        notifyListeners();
+      }
       return true;
     }
     return false;
@@ -83,4 +95,3 @@ class CartProvider with ChangeNotifier {
     _total = _cartItems.fold(0.0, (sum, item) => sum + (item.itemTotal ?? 0.0));
   }
 }
-

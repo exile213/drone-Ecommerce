@@ -401,7 +401,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         items: [
                           DropdownMenuItem(
                             value: constants.AppConstants.roleUser,
-                            child: Text('User', style: GoogleFonts.inter()),
+                            child: Text(
+                              'User (Buyer & Seller)',
+                              style: GoogleFonts.inter(),
+                            ),
                           ),
                           DropdownMenuItem(
                             value: constants.AppConstants.roleAdmin,

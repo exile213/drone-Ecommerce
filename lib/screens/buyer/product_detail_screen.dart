@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../models/product_model.dart';
 import '../../models/user_model.dart';
-import '../../services/cart_service.dart';
+import '../../providers/cart_provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -45,16 +46,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     setState(() => _isAddingToCart = true);
 
-    final result = await CartService.addToCart(
-      userId: widget.user.id!,
-      productId: widget.product.id!,
-      quantity: _quantity,
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    final success = await cartProvider.addToCart(
+      widget.user.id!,
+      widget.product.id!,
+      _quantity,
     );
 
     if (mounted) {
       setState(() => _isAddingToCart = false);
 
-      if (result['success']) {
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Product added to cart'),
@@ -63,8 +65,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Failed to add to cart'),
+          const SnackBar(
+            content: Text('Failed to add to cart'),
             backgroundColor: Colors.red,
           ),
         );

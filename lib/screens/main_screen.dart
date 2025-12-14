@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/order_service.dart';
+import '../providers/cart_provider.dart';
 import '../utils/constants.dart' as constants;
 import 'auth/login_screen.dart';
 import 'home_screen.dart';
@@ -13,6 +16,7 @@ import 'seller/seller_orders_screen.dart';
 import 'admin/admin_all_products_screen.dart';
 import 'admin/admin_all_orders_screen.dart';
 import 'admin/admin_all_users_screen.dart';
+import 'admin/admin_dashboard_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final UserModel user;
@@ -26,9 +30,33 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final AuthService _authService = AuthService();
+  int _ordersRefreshKey = 0;
 
   List<Widget> get _screens {
-    // Both admin and regular users can be buyers and sellers
+    // Role-based screen navigation:
+    // - Admin: Admin dashboard + buyer features (browse, cart, orders)
+    // - User: Buyer + Seller features (home, browse, cart, orders)
+    //   Note: "user" role can act as both buyer and seller
+    if (widget.user.isAdmin) {
+      return [
+        AdminDashboardScreen(
+          user: widget.user,
+          onNavigateToTab: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+        ),
+        ProductsBrowseScreen(user: widget.user),
+        CartScreen(user: widget.user),
+        MyOrdersScreen(
+          key: ValueKey(_ordersRefreshKey),
+          user: widget.user,
+          refreshKey: ValueKey(_ordersRefreshKey),
+        ),
+      ];
+    }
+    // User role: Can browse (buyer) and manage products (seller)
     return [
       HomeScreen(
         user: widget.user,
@@ -40,7 +68,11 @@ class _MainScreenState extends State<MainScreen> {
       ),
       ProductsBrowseScreen(user: widget.user),
       CartScreen(user: widget.user),
-      MyOrdersScreen(user: widget.user),
+      MyOrdersScreen(
+        key: ValueKey(_ordersRefreshKey),
+        user: widget.user,
+        refreshKey: ValueKey(_ordersRefreshKey),
+      ),
     ];
   }
 
@@ -92,6 +124,36 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  String get _appBarTitle {
+    if (widget.user.isAdmin) {
+      switch (_currentIndex) {
+        case 0:
+          return 'Admin Dashboard';
+        case 1:
+          return 'Browse';
+        case 2:
+          return 'Cart';
+        case 3:
+          return 'Orders';
+        default:
+          return 'ShopMobile';
+      }
+    } else {
+      switch (_currentIndex) {
+        case 0:
+          return 'Home';
+        case 1:
+          return 'Browse';
+        case 2:
+          return 'Cart';
+        case 3:
+          return 'My Orders';
+        default:
+          return 'ShopMobile';
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isAdmin = widget.user.isAdmin;
@@ -99,10 +161,33 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'ShopMobile',
+          _appBarTitle,
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         actions: [
+          // Refresh button for Cart and Orders tabs
+          if (_currentIndex == 2) // Cart tab
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                final cartProvider = Provider.of<CartProvider>(
+                  context,
+                  listen: false,
+                );
+                cartProvider.loadCart(widget.user.id!);
+              },
+              tooltip: 'Refresh Cart',
+            ),
+          if (_currentIndex == 3) // Orders tab
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                setState(() {
+                  _ordersRefreshKey++; // Change key to trigger refresh
+                });
+              },
+              tooltip: 'Refresh Orders',
+            ),
           // Admin badge
           if (isAdmin)
             Container(
@@ -121,9 +206,17 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             ),
-          // Seller menu items (only for regular users, not admins)
-          if (widget.user.role == constants.AppConstants.roleUser &&
-              !widget.user.isAdmin) ...[
+          // Menu items
+          if (widget.user.isAdmin) ...[
+            // Admin menu - just logout
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: _handleLogout,
+              tooltip: 'Logout',
+            ),
+          ] else if (widget.user.role == constants.AppConstants.roleUser) ...[
+            // User role menu: Can act as both buyer and seller
+            // Shows seller features (My Products, Incoming Orders) + buyer features (via bottom nav)
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
               itemBuilder: (context) => [
@@ -182,6 +275,7 @@ class _MainScreenState extends State<MainScreen> {
               },
             ),
           ] else ...[
+            // Buyer only - just logout
             IconButton(
               icon: const Icon(Icons.logout),
               onPressed: _handleLogout,
@@ -328,7 +422,8 @@ class _MainScreenState extends State<MainScreen> {
                 setState(() => _currentIndex = 3);
               },
             ),
-            // Seller menu section (only for regular users, not admins)
+            // Seller menu section: User role can manage products and view orders
+            // (User role = buyer + seller capabilities)
             if (widget.user.role == constants.AppConstants.roleUser &&
                 !widget.user.isAdmin) ...[
               const Divider(color: Color(0xFFe2e8f0)),
@@ -488,7 +583,26 @@ class _MainScreenState extends State<MainScreen> {
           fontSize: 12,
         ),
         unselectedLabelStyle: GoogleFonts.inter(fontSize: 12),
-        items: _bottomNavItems,
+        items: widget.user.isAdmin
+            ? [
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.dashboard),
+                  label: 'Dashboard',
+                ),
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.shopping_bag),
+                  label: 'Browse',
+                ),
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.shopping_cart),
+                  label: 'Cart',
+                ),
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.receipt_long),
+                  label: 'Orders',
+                ),
+              ]
+            : _bottomNavItems,
       ),
     );
   }

@@ -83,4 +83,10 @@ class UserModel {
 
   bool get isAdmin => role == 'admin';
   bool get isUser => role == 'user';
+
+  // Role capabilities:
+  // - Admin: Full admin dashboard access
+  // - User: Can act as both buyer (browse, cart, checkout) and seller (manage products, view orders)
+  bool get canBuy => role == 'user' || role == 'admin';
+  bool get canSell => role == 'user' || role == 'admin';
 }

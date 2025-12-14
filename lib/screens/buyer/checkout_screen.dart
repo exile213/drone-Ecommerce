@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/cart_item_model.dart';
 import '../../models/user_model.dart';
+import '../../providers/cart_provider.dart';
 import '../../services/order_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -125,12 +127,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         setState(() => _isLoading = false);
 
         if (result['success']) {
+          // Clear cart after successful order
+          final cartProvider = Provider.of<CartProvider>(
+            context,
+            listen: false,
+          );
+          cartProvider.clearCart();
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Order placed successfully!'),
               backgroundColor: Colors.green,
             ),
           );
+          // Navigate back to main screen
           Navigator.of(context).popUntil((route) => route.isFirst);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

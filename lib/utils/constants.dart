@@ -38,6 +38,11 @@ class AppConstants {
       'http://localhost/ecommercephp-api/uploads/';
 
   // User Roles
+  // Note: The role system works as follows:
+  // - 'admin': Full admin dashboard access, can manage all products, orders, and users
+  // - 'user': Hybrid role - can act as BOTH buyer (browse, add to cart, checkout)
+  //   AND seller (add/edit/delete products, view incoming orders)
+  //   This is more realistic as users can both buy and sell products in the marketplace
   static const String roleAdmin = 'admin';
   static const String roleUser = 'user';
 

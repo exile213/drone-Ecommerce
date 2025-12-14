@@ -123,7 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Only show "My Products" for regular users, not admins
+                  // Show "My Products" for user role (buyer + seller)
+                  // User role can manage products as a seller
                   if (widget.user.role == constants.AppConstants.roleUser &&
                       !widget.user.isAdmin)
                     Expanded(
