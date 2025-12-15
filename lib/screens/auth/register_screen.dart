@@ -178,6 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String? Function(String?)? validator,
     int? maxLines,
   }) {
+    final effectiveMaxLines = obscureText ? 1 : (maxLines ?? 1);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -194,7 +195,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           controller: controller,
           keyboardType: keyboardType,
           obscureText: obscureText,
-          maxLines: maxLines,
+          maxLines: effectiveMaxLines,
           style: GoogleFonts.inter(),
           decoration: InputDecoration(
             hintText: hint,

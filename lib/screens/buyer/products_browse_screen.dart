@@ -4,6 +4,7 @@ import '../../models/product_model.dart';
 import '../../models/user_model.dart';
 import '../../services/product_service.dart';
 import '../../utils/constants.dart' as constants;
+import '../../utils/debug_logger.dart';
 import 'product_detail_screen.dart';
 
 class ProductsBrowseScreen extends StatefulWidget {
@@ -28,18 +29,33 @@ class _ProductsBrowseScreenState extends State<ProductsBrowseScreen> {
   }
 
   Future<void> _loadProducts() async {
+    // #region agent log
+    DebugLogger.log(location: 'products_browse_screen.dart:30', message: '_loadProducts called', data: {'userId': widget.user.id, 'category': _selectedCategory, 'search': _searchQuery, 'currentProductCount': _products.length}, hypothesisId: 'A');
+    // #endregion
     setState(() => _isLoading = true);
 
     final result = await ProductService.getAllProducts(
       category: _selectedCategory,
       search: _searchQuery.isEmpty ? null : _searchQuery,
+      excludeSellerId: widget.user.id,
     );
+    // #region agent log
+    DebugLogger.log(location: 'products_browse_screen.dart:38', message: 'API call completed', data: {'success': result['success'], 'productCount': result['success'] ? (result['products'] as List).length : 0, 'excludeSellerId': widget.user.id}, hypothesisId: 'A');
+    // #endregion
 
     if (mounted) {
       setState(() {
         _isLoading = false;
         if (result['success']) {
-          _products = result['products'] as List<ProductModel>;
+          final allProducts = result['products'] as List<ProductModel>;
+          // #region agent log
+          DebugLogger.log(location: 'products_browse_screen.dart:45', message: 'Filtering products', data: {'totalProducts': allProducts.length, 'userId': widget.user.id, 'ownProductsCount': allProducts.where((p) => p.sellerId == widget.user.id).length}, hypothesisId: 'A');
+          // #endregion
+          // Filter out own products on client side as safety measure
+          _products = allProducts.where((product) => product.sellerId != widget.user.id).toList();
+          // #region agent log
+          DebugLogger.log(location: 'products_browse_screen.dart:49', message: 'After client-side filter', data: {'filteredCount': _products.length, 'productIds': _products.map((p) => p.id).toList(), 'sellerIds': _products.map((p) => p.sellerId).toList()}, hypothesisId: 'A');
+          // #endregion
         }
       });
     }

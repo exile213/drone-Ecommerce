@@ -4,6 +4,7 @@ import '../models/user_model.dart';
 import '../services/product_service.dart';
 import '../models/product_model.dart';
 import '../utils/constants.dart' as constants;
+import '../utils/debug_logger.dart';
 import 'buyer/product_detail_screen.dart';
 import 'seller/products_list_screen.dart';
 
@@ -17,29 +18,72 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<ProductModel> _featuredProducts = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    // #region agent log
+    DebugLogger.log(location: 'home_screen.dart:27', message: 'initState called', data: {'productCount': _featuredProducts.length}, hypothesisId: 'A');
+    // #endregion
+    WidgetsBinding.instance.addObserver(this);
     _loadFeaturedProducts();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // #region agent log
+    DebugLogger.log(location: 'home_screen.dart:42', message: 'App lifecycle changed', data: {'state': state.toString()}, hypothesisId: 'C');
+    // #endregion
+    if (state == AppLifecycleState.resumed) {
+      // #region agent log
+      DebugLogger.log(location: 'home_screen.dart:45', message: 'App resumed, refreshing products', hypothesisId: 'C');
+      // #endregion
+      _loadFeaturedProducts();
+    }
+  }
+
   Future<void> _loadFeaturedProducts() async {
-    final result = await ProductService.getAllProducts();
+    // #region agent log
+    DebugLogger.log(location: 'home_screen.dart:79', message: '_loadFeaturedProducts called', data: {'mounted': mounted, 'currentProductCount': _featuredProducts.length, 'userId': widget.user.id, 'userRole': widget.user.role}, hypothesisId: 'A');
+    // #endregion
+    setState(() => _isLoading = true);
+    final result = await ProductService.getAllProducts(
+      excludeSellerId: widget.user.id, // Exclude user's own products
+    );
+    // #region agent log
+    DebugLogger.log(location: 'home_screen.dart:85', message: 'API call completed', data: {'success': result['success'], 'productCount': result['success'] ? (result['products'] as List).length : 0, 'mounted': mounted, 'excludeSellerId': widget.user.id}, hypothesisId: 'A');
+    // #endregion
 
     if (mounted) {
       setState(() {
         _isLoading = false;
         if (result['success']) {
+          // Get first 6 products as featured, with client-side filtering as safety measure
+          final allProducts = result['products'] as List<ProductModel>;
+          // #region agent log
+          DebugLogger.log(location: 'home_screen.dart:92', message: 'Filtering products', data: {'totalProducts': allProducts.length, 'userId': widget.user.id, 'ownProductsCount': allProducts.where((p) => p.sellerId == widget.user.id).length}, hypothesisId: 'A');
+          // #endregion
+          // Filter out own products on client side as safety measure
+          final filteredProducts = allProducts.where((product) => product.sellerId != widget.user.id).toList();
+          // #region agent log
+          DebugLogger.log(location: 'home_screen.dart:96', message: 'After client-side filter', data: {'filteredCount': filteredProducts.length}, hypothesisId: 'A');
+          // #endregion
           // Get first 6 products as featured
-          _featuredProducts = (result['products'] as List<ProductModel>)
-              .take(6)
-              .toList();
+          _featuredProducts = filteredProducts.take(6).toList();
         }
       });
+      // #region agent log
+      DebugLogger.log(location: 'home_screen.dart:101', message: 'setState completed', data: {'productCount': _featuredProducts.length, 'featuredProductIds': _featuredProducts.map((p) => p.id).toList(), 'featuredSellerIds': _featuredProducts.map((p) => p.sellerId).toList()}, hypothesisId: 'A');
+      // #endregion
     }
   }
 
@@ -134,13 +178,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         title: 'My Products',
                         color: Colors.green,
                         onTap: () {
+                          // #region agent log
+                          DebugLogger.log(location: 'home_screen.dart:197', message: 'Navigating to ProductsListScreen', hypothesisId: 'B');
+                          // #endregion
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
                                   ProductsListScreen(user: widget.user),
                             ),
-                          );
+                          ).then((_) {
+                            // #region agent log
+                            DebugLogger.log(location: 'home_screen.dart:207', message: 'Returned from ProductsListScreen, refreshing', hypothesisId: 'B');
+                            // #endregion
+                            _loadFeaturedProducts();
+                          });
                         },
                       ),
                     ),

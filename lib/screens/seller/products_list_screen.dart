@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/product_model.dart';
 import '../../models/user_model.dart';
 import '../../services/product_service.dart';
+import '../../utils/debug_logger.dart';
 import 'product_form_screen.dart';
 
 class ProductsListScreen extends StatefulWidget {
@@ -25,17 +26,36 @@ class _ProductsListScreenState extends State<ProductsListScreen> {
   }
 
   Future<void> _loadProducts() async {
+    // #region agent log
+    DebugLogger.log(location: 'products_list_screen.dart:27', message: '_loadProducts called', data: {'mounted': mounted, 'currentProductCount': _products.length}, hypothesisId: 'B');
+    // #endregion
     setState(() => _isLoading = true);
+    // #region agent log
+    DebugLogger.log(location: 'products_list_screen.dart:31', message: 'setState isLoading=true called', data: {'mounted': mounted}, hypothesisId: 'B');
+    // #endregion
 
     final result = await ProductService.getProductsBySeller(widget.user.id!);
+    // #region agent log
+    DebugLogger.log(location: 'products_list_screen.dart:36', message: 'API call completed', data: {'success': result['success'], 'productCount': result['success'] ? (result['products'] as List).length : 0, 'mounted': mounted}, hypothesisId: 'C');
+    // #endregion
 
     if (mounted) {
+      // #region agent log
+      DebugLogger.log(location: 'products_list_screen.dart:41', message: 'About to call setState with results', data: {'success': result['success'], 'productCount': result['success'] ? (result['products'] as List).length : 0}, hypothesisId: 'B');
+      // #endregion
       setState(() {
         _isLoading = false;
         if (result['success']) {
           _products = result['products'] as List<ProductModel>;
         }
       });
+      // #region agent log
+      DebugLogger.log(location: 'products_list_screen.dart:50', message: 'setState completed', data: {'productCount': _products.length}, hypothesisId: 'B');
+      // #endregion
+    } else {
+      // #region agent log
+      DebugLogger.log(location: 'products_list_screen.dart:53', message: 'Widget not mounted, skipping setState', hypothesisId: 'D');
+      // #endregion
     }
   }
 

@@ -31,7 +31,7 @@ class CartProvider with ChangeNotifier {
   }
 
   // Add to cart
-  Future<bool> addToCart(int userId, int productId, int quantity) async {
+  Future<Map<String, dynamic>> addToCart(int userId, int productId, int quantity) async {
     final result = await CartService.addToCart(
       userId: userId,
       productId: productId,
@@ -40,9 +40,9 @@ class CartProvider with ChangeNotifier {
 
     if (result['success']) {
       await loadCart(userId);
-      return true;
+      return {'success': true, 'message': result['message'] ?? 'Item added to cart'};
     }
-    return false;
+    return {'success': false, 'message': result['message'] ?? 'Failed to add item to cart'};
   }
 
   // Update cart item

@@ -1,11 +1,14 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/product_model.dart';
 import '../../models/user_model.dart';
 import '../../services/product_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/constants.dart' as constants;
+import '../../utils/debug_logger.dart';
 
 class ProductFormScreen extends StatefulWidget {
   final UserModel user;
@@ -29,7 +32,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   final _stockController = TextEditingController();
   
   String _selectedCategory = constants.AppConstants.productCategories[0];
-  File? _selectedImage;
+  XFile? _selectedImage;
+  Uint8List? _selectedImageBytes;
   String? _imageUrl;
   bool _isLoading = false;
   final ImagePicker _imagePicker = ImagePicker();
@@ -82,8 +86,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
     final pickedFile = await _imagePicker.pickImage(source: result);
     if (pickedFile != null) {
+      final imageBytes = await pickedFile.readAsBytes();
       setState(() {
-        _selectedImage = File(pickedFile.path);
+        _selectedImage = pickedFile;
+        _selectedImageBytes = imageBytes;
         _imageUrl = null; // Clear old URL when new image is selected
       });
     }
@@ -101,7 +107,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
       // Upload new image if selected
       if (_selectedImage != null) {
-        final uploadResult = await StorageService.uploadImage(_selectedImage!);
+        final uploadResult = await StorageService.uploadImageFromXFile(_selectedImage!);
         if (!uploadResult['success']) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -147,6 +153,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
       if (mounted) {
         if (result['success']) {
+          // #region agent log
+          DebugLogger.log(location: 'product_form_screen.dart:155', message: 'Product save success, about to pop', data: {'success': result['success'], 'isEdit': widget.product != null}, hypothesisId: 'A');
+          // #endregion
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -157,7 +166,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.of(context).pop();
+          // #region agent log
+          DebugLogger.log(location: 'product_form_screen.dart:168', message: 'Calling Navigator.pop', data: {'mounted': mounted}, hypothesisId: 'A');
+          // #endregion
+          Navigator.of(context).pop(true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -207,12 +219,38 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     border: Border.all(color: Colors.grey[300]!),
                   ),
                   child: _selectedImage != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            _selectedImage!,
-                            fit: BoxFit.cover,
-                          ),
+                      ? Builder(
+                          builder: (context) {
+                            if (kIsWeb || _selectedImageBytes != null) {
+                              return ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: _selectedImageBytes != null
+                                    ? Image.memory(
+                                        _selectedImageBytes!,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : FutureBuilder<Uint8List>(
+                                        future: _selectedImage!.readAsBytes(),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.hasData) {
+                                            return Image.memory(
+                                              snapshot.data!,
+                                              fit: BoxFit.cover,
+                                            );
+                                          }
+                                          return const Center(child: CircularProgressIndicator());
+                                        },
+                                      ),
+                              );
+                            }
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(
+                                File(_selectedImage!.path),
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          },
                         )
                       : _imageUrl != null
                           ? ClipRRect(
@@ -295,9 +333,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               TextFormField(
                 controller: _priceController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Price *',
-                  prefixIcon: Icon(Icons.attach_money),
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: Text('₱', style: TextStyle(fontSize: 20, color: Colors.grey)),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {

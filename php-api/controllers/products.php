@@ -58,6 +58,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
             $id = $_GET['id'] ?? null;
             $category = $_GET['category'] ?? null;
             $search = $_GET['search'] ?? null;
+            $exclude_seller_id = isset($_GET['exclude_seller_id']) && $_GET['exclude_seller_id'] !== '' ? (int)$_GET['exclude_seller_id'] : null;
             
             try {
                 $sql = "SELECT p.*, u.full_name as seller_name, u.email as seller_email FROM products p LEFT JOIN users u ON p.seller_id = u.id WHERE 1=1";
@@ -76,6 +77,10 @@ switch ($_SERVER['REQUEST_METHOD']) {
                     $searchTerm = "%$search%";
                     $params[] = $searchTerm;
                     $params[] = $searchTerm;
+                }
+                if ($exclude_seller_id !== null && $exclude_seller_id > 0) {
+                    $sql .= " AND p.seller_id != ?";
+                    $params[] = $exclude_seller_id;
                 }
                 
                 $sql .= " ORDER BY p.created_at DESC";

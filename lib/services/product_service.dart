@@ -1,5 +1,6 @@
 import '../models/product_model.dart';
 import '../utils/constants.dart';
+import '../utils/debug_logger.dart';
 import 'api_service.dart';
 
 class ProductService {
@@ -7,6 +8,7 @@ class ProductService {
   static Future<Map<String, dynamic>> getAllProducts({
     String? category,
     String? search,
+    int? excludeSellerId,
   }) async {
     String endpoint = ApiConstants.products;
     List<String> params = [];
@@ -17,10 +19,17 @@ class ProductService {
     if (search != null && search.isNotEmpty) {
       params.add('search=$search');
     }
+    if (excludeSellerId != null && excludeSellerId > 0) {
+      params.add('exclude_seller_id=$excludeSellerId');
+    }
 
     if (params.isNotEmpty) {
       endpoint += '?${params.join('&')}';
     }
+
+    // #region agent log
+    DebugLogger.log(location: 'product_service.dart:28', message: 'getAllProducts API call', data: {'endpoint': endpoint, 'excludeSellerId': excludeSellerId, 'category': category, 'search': search}, hypothesisId: 'A');
+    // #endregion
 
     final response = await ApiService.get(endpoint);
 

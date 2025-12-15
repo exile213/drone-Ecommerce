@@ -79,6 +79,23 @@ switch ($_SERVER['REQUEST_METHOD']) {
         }
 
         try {
+            // Check if user is trying to add their own product
+            $product_check = $db->prepare("SELECT seller_id FROM products WHERE id = ?");
+            $product_check->execute([$product_id]);
+            $product = $product_check->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$product) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Product not found']);
+                exit();
+            }
+            
+            if ((int)$product['seller_id'] === (int)$user_id) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'You cannot add your own product to cart']);
+                exit();
+            }
+            
             // Check if item already exists in cart
             $check = $db->prepare("SELECT id, quantity FROM cart_items WHERE user_id = ? AND product_id = ?");
             $check->execute([$user_id, $product_id]);

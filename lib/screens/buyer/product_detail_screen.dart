@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/product_model.dart';
 import '../../models/user_model.dart';
 import '../../providers/cart_provider.dart';
+import '../../utils/debug_logger.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -23,7 +24,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
   bool _isAddingToCart = false;
 
+  bool get _isOwnProduct => widget.product.sellerId == widget.user.id;
+
   Future<void> _addToCart() async {
+    // #region agent log
+    DebugLogger.log(location: 'product_detail_screen.dart:28', message: '_addToCart called', data: {'productId': widget.product.id, 'sellerId': widget.product.sellerId, 'userId': widget.user.id, 'isOwnProduct': _isOwnProduct}, hypothesisId: 'A');
+    // #endregion
+    
+    if (_isOwnProduct) {
+      // #region agent log
+      DebugLogger.log(location: 'product_detail_screen.dart:31', message: 'Blocked: User trying to add own product', data: {'productId': widget.product.id}, hypothesisId: 'A');
+      // #endregion
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You cannot add your own product to cart'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     if (!widget.product.isInStock) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -47,26 +67,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     setState(() => _isAddingToCart = true);
 
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    final success = await cartProvider.addToCart(
+    final result = await cartProvider.addToCart(
       widget.user.id!,
       widget.product.id!,
       _quantity,
     );
+    // #region agent log
+    DebugLogger.log(location: 'product_detail_screen.dart:66', message: 'addToCart result', data: {'success': result['success'], 'message': result['message']}, hypothesisId: 'A');
+    // #endregion
 
     if (mounted) {
       setState(() => _isAddingToCart = false);
 
-      if (success) {
+      if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product added to cart'),
+          SnackBar(
+            content: Text(result['message'] ?? 'Product added to cart'),
             backgroundColor: Colors.green,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to add to cart'),
+          SnackBar(
+            content: Text(result['message'] ?? 'Failed to add to cart'),
             backgroundColor: Colors.red,
           ),
         );
@@ -221,8 +244,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       const SizedBox(height: 24),
                     ],
 
+                    // Own product message
+                    if (_isOwnProduct) ...[
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.orange.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline, color: Colors.orange.shade700),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'This is your own product. You can manage it from "My Products".',
+                                style: GoogleFonts.inter(
+                                  color: Colors.orange.shade900,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+
                     // Quantity selector
-                    if (widget.product.isInStock) ...[
+                    if (widget.product.isInStock && !_isOwnProduct) ...[
                       Text(
                         'Quantity',
                         style: GoogleFonts.inter(
@@ -282,7 +333,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: widget.product.isInStock
+        bottomNavigationBar: widget.product.isInStock && !_isOwnProduct
             ? SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
