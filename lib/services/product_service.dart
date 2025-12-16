@@ -100,6 +100,20 @@ class ProductService {
     required String category,
     String? imageUrl,
   }) async {
+    // #region agent log
+    await DebugLogger.log(
+      location: 'product_service.dart:103',
+      message: 'Creating product with imageUrl',
+      data: {
+        'imageUrl': imageUrl,
+        'imageUrlLength': imageUrl?.length ?? 0,
+        'isFirebaseUrl': imageUrl?.contains('firebasestorage.googleapis.com') ?? false,
+        'isNull': imageUrl == null,
+      },
+      hypothesisId: 'B',
+    );
+    // #endregion
+    
     final response = await ApiService.post(
       ApiConstants.products,
       {

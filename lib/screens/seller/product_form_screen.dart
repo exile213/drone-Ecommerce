@@ -14,11 +14,7 @@ class ProductFormScreen extends StatefulWidget {
   final UserModel user;
   final ProductModel? product;
 
-  const ProductFormScreen({
-    super.key,
-    required this.user,
-    this.product,
-  });
+  const ProductFormScreen({super.key, required this.user, this.product});
 
   @override
   State<ProductFormScreen> createState() => _ProductFormScreenState();
@@ -30,7 +26,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _stockController = TextEditingController();
-  
+
   String _selectedCategory = constants.AppConstants.productCategories[0];
   XFile? _selectedImage;
   Uint8List? _selectedImageBytes;
@@ -104,15 +100,25 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
     try {
       String? finalImageUrl = _imageUrl;
+      String? oldImageUrl; // Store old image URL for cleanup
+
+      // If updating product and new image is selected, store old image URL for cleanup
+      if (widget.product != null && _selectedImage != null) {
+        oldImageUrl = widget.product!.imageUrl;
+      }
 
       // Upload new image if selected
       if (_selectedImage != null) {
-        final uploadResult = await StorageService.uploadImageFromXFile(_selectedImage!);
+        final uploadResult = await StorageService.uploadImageFromXFile(
+          _selectedImage!,
+        );
         if (!uploadResult['success']) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(uploadResult['message'] ?? 'Failed to upload image'),
+                content: Text(
+                  uploadResult['message'] ?? 'Failed to upload image',
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -138,6 +144,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           category: _selectedCategory,
           imageUrl: finalImageUrl,
         );
+
+        // If product update was successful and we have an old image, delete it
+        if (result['success'] == true &&
+            oldImageUrl != null &&
+            oldImageUrl != finalImageUrl) {
+          // Delete old image silently (don't fail if deletion fails)
+          await StorageService.deleteImageIfFirebase(oldImageUrl);
+        }
       } else {
         // Create new product
         result = await ProductService.createProduct(
@@ -154,7 +168,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       if (mounted) {
         if (result['success']) {
           // #region agent log
-          DebugLogger.log(location: 'product_form_screen.dart:155', message: 'Product save success, about to pop', data: {'success': result['success'], 'isEdit': widget.product != null}, hypothesisId: 'A');
+          DebugLogger.log(
+            location: 'product_form_screen.dart:155',
+            message: 'Product save success, about to pop',
+            data: {
+              'success': result['success'],
+              'isEdit': widget.product != null,
+            },
+            hypothesisId: 'A',
+          );
           // #endregion
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -167,7 +189,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             ),
           );
           // #region agent log
-          DebugLogger.log(location: 'product_form_screen.dart:168', message: 'Calling Navigator.pop', data: {'mounted': mounted}, hypothesisId: 'A');
+          DebugLogger.log(
+            location: 'product_form_screen.dart:168',
+            message: 'Calling Navigator.pop',
+            data: {'mounted': mounted},
+            hypothesisId: 'A',
+          );
           // #endregion
           Navigator.of(context).pop(true);
         } else {
@@ -238,7 +265,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                                               fit: BoxFit.cover,
                                             );
                                           }
-                                          return const Center(child: CircularProgressIndicator());
+                                          return const Center(
+                                            child: CircularProgressIndicator(),
+                                          );
                                         },
                                       ),
                               );
@@ -253,34 +282,40 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                           },
                         )
                       : _imageUrl != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                _imageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Center(
-                                    child: Icon(Icons.image_not_supported, size: 64),
-                                  );
-                                },
-                              ),
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_photo_alternate,
-                                    size: 64, color: Colors.grey[400]),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Tap to add product image',
-                                  style: TextStyle(color: Colors.grey[600]),
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  size: 64,
                                 ),
-                              ],
+                              );
+                            },
+                          ),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_photo_alternate,
+                              size: 64,
+                              color: Colors.grey[400],
                             ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tap to add product image',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Product name
               TextFormField(
                 controller: _nameController,
@@ -296,7 +331,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Description
               TextFormField(
                 controller: _descriptionController,
@@ -307,7 +342,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // Category dropdown
               DropdownButtonFormField<String>(
                 value: _selectedCategory,
@@ -328,16 +363,21 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Price
               TextFormField(
                 controller: _priceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: InputDecoration(
                   labelText: 'Price *',
                   prefixIcon: const Padding(
                     padding: EdgeInsets.all(12.0),
-                    child: Text('₱', style: TextStyle(fontSize: 20, color: Colors.grey)),
+                    child: Text(
+                      '₱',
+                      style: TextStyle(fontSize: 20, color: Colors.grey),
+                    ),
                   ),
                 ),
                 validator: (value) {
@@ -352,7 +392,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Stock quantity
               TextFormField(
                 controller: _stockController,
@@ -373,7 +413,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 },
               ),
               const SizedBox(height: 32),
-              
+
               // Save button
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveProduct,
@@ -383,7 +423,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(widget.product != null ? 'Update Product' : 'Create Product'),
+                    : Text(
+                        widget.product != null
+                            ? 'Update Product'
+                            : 'Create Product',
+                      ),
               ),
             ],
           ),
@@ -392,4 +436,3 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     );
   }
 }
-

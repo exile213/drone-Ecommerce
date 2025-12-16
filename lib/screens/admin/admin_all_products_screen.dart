@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../models/product_model.dart';
 import '../../models/user_model.dart';
+import '../../services/product_service.dart';
+import '../../services/storage_service.dart';
 import '../../utils/constants.dart' as constants;
 import '../seller/product_form_screen.dart';
 
@@ -100,15 +101,33 @@ class _AdminAllProductsScreenState extends State<AdminAllProductsScreen> {
 
     if (confirm != true) return;
 
-    // TODO: Replace with actual API call when backend is ready
+    // Store image URL for cleanup before deleting product
+    final imageUrl = product.imageUrl;
+
+    final result = await ProductService.deleteProduct(product.id!);
+
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Product "${product.name}" deleted (mock action)'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      _loadProducts();
+      if (result['success']) {
+        // Delete image from Firebase Storage if it exists (silently - don't fail if deletion fails)
+        if (imageUrl != null) {
+          await StorageService.deleteImageIfFirebase(imageUrl);
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Product deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _loadProducts();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Failed to delete product'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

@@ -1,3 +1,5 @@
+import '../utils/debug_logger.dart';
+
 class ProductModel {
   final int? id;
   final int sellerId;
@@ -29,6 +31,25 @@ class ProductModel {
 
   // Convert from JSON
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    final imageUrl = json['image_url'] as String?;
+    
+    // #region agent log
+    DebugLogger.log(
+      location: 'product_model.dart:40',
+      message: 'ProductModel.fromJson - imageUrl from API',
+      data: {
+        'productId': json['id'],
+        'productName': json['name'],
+        'imageUrl': imageUrl,
+        'imageUrlLength': imageUrl?.length ?? 0,
+        'isFirebaseUrl': imageUrl?.contains('firebasestorage.googleapis.com') ?? false,
+        'isNull': imageUrl == null,
+        'rawImageUrl': imageUrl,
+      },
+      hypothesisId: 'C',
+    );
+    // #endregion
+    
     return ProductModel(
       id: json['id'] as int?,
       sellerId: int.parse(json['seller_id'].toString()),
@@ -37,7 +58,7 @@ class ProductModel {
       price: double.parse(json['price'].toString()),
       stockQuantity: int.parse(json['stock_quantity'].toString()),
       category: json['category'] as String,
-      imageUrl: json['image_url'] as String?,
+      imageUrl: imageUrl,
       sellerName: json['seller_name'] as String?,
       sellerEmail: json['seller_email'] as String?,
       createdAt: json['created_at'] as String?,

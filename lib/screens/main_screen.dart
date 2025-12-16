@@ -411,7 +411,25 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             if (!widget.user.isAdmin) ...[
-              // Regular user navigation items
+              // Buyer section header
+              if (widget.user.role == constants.AppConstants.roleUser &&
+                  !widget.user.isAdmin)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Text(
+                    'BUYER',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0ea5e9),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+              // Regular user navigation items (Buyer features)
               ListTile(
                 leading: const Icon(Icons.home, color: Color(0xFF0f172a)),
                 title: Text(
@@ -471,6 +489,22 @@ class _MainScreenState extends State<MainScreen> {
             if (widget.user.role == constants.AppConstants.roleUser &&
                 !widget.user.isAdmin) ...[
               const Divider(color: Color(0xFFe2e8f0)),
+              // Seller section header
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  'SELLER',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF6366f1),
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
               ListTile(
                 leading: const Icon(
                   Icons.inventory_2,
